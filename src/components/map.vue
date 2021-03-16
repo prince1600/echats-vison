@@ -18,19 +18,29 @@ export default {
             provinceData: {}
         }
     },
+    created(){
+        this.$socket.register('mapData', this.getData)
+    },
     mounted(){
         this.initChart()
-        this.getData()
+        // this.getData()
+        this.$socket.send({
+            action: 'getData',
+            socketType: 'mapData',
+            chartName: 'map',
+            value: ''
+        })
         window.addEventListener('resize', this.adaptScreen)
         this.adaptScreen()
     },
     destroyed(){
         window.removeEventListener('resize', this.adaptScreen)
+        this.$socket.unregister('mapData')
     },
     methods: {
-        async getData(){
+        async getData(data){
             //请求数据
-            const {data} = await this.$http.get('map')
+            // const {data} = await this.$http.get('map')
             this.allData = data
             this.updataChart()
         },

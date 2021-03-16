@@ -36,14 +36,24 @@ export default {
       titleFontSize: 0
     };
   },
+  created() {
+    this.$socket.register('trendData', this.getData)
+  },
   async mounted() {
     this.initChart();
-    await this.getData();
+    // await this.getData();
+    this.$socket.send({
+      action: 'getData',
+      socketType: 'trendData',
+      chartName: 'trend',
+      value: ''
+    })
     window.addEventListener("resize", this.adaptScreen);
     this.adaptScreen();
   },
   destroyed() {
     removeEventListener("resize", this.adaptScreen);
+    this.$socket.unregister('trendData')
   },
   computed: {
     types() {
@@ -89,9 +99,9 @@ export default {
       };
       this.chartInstance.setOption(initOption);
     },
-    async getData() {
-      const { data } = await this.$http.get("trend");
-      this.allData = data;
+    getData(res) {
+      // const { data } = await this.$http.get("trend");
+      this.allData = res;
       this.selectedType = this.types[0].key;
       console.log(this.types);
 

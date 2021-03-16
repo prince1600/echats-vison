@@ -16,11 +16,18 @@ export default {
       intervalId: -1,
     };
   },
+  created() {
+    this.$socket.register('sellerData', this.getData)
+  },
   async mounted() {
     this.initChart();
-    await this.getData();
-    this.processData();
-    this.updateChart();
+    // await this.getData();
+    this.$socket.send({
+        action: 'getData',
+        socketType: 'sellerData',
+        chartName: 'seller',
+        value: ''
+      })
     this.screenAdapter()
     this.startInterval();
     window.addEventListener('resize', this.handleResize) 
@@ -28,6 +35,7 @@ export default {
   beforeDestroy() {
     clearInterval(this.intervalId);
     removeEventListener('resize', this.handleResize)
+    this.$socket.unregister('sellerData')
   },
   computed: {
     start() {
@@ -112,10 +120,12 @@ export default {
       });
     },
 
-    async getData() {
-      const { data: res } = await this.$http.get("seller");
+    async getData(res) {
+      // const { data: res } = await this.$http.get("seller");
       this.allData = res;
       this.totalPage = Math.ceil(this.allData.length / 5);
+    this.updateChart();
+
     },
 
     processData() {
@@ -127,6 +137,7 @@ export default {
       });
     },
     updateChart() {
+      this.processData()
       const option = {
         yAxis: {
           data: this.names.slice(this.start, this.end),
@@ -138,7 +149,7 @@ export default {
           },
         ],
       };
-      this.chartInstance.setOption(option);
+      this.chartInstance.setOption(option)
     },
     screenAdapter() {
       const titleFontSize = this.$refs['seller'].offsetWidth / 100 * 3.6

@@ -5,6 +5,11 @@ import store from './store'
 import axios from './request'
 
 import './assets/css/global.less'
+import './assets/font/iconfont.css'
+import Socket from './utils/socket_service.js'
+
+Socket.Instance.connect()
+Vue.prototype.$socket = Socket.Instance
 
 Vue.prototype.$http = axios
 Vue.prototype.$echarts = window.echarts

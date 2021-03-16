@@ -14,20 +14,30 @@ export default {
       intervalId: 0,
     };
   },
+  created(){
+    this.$socket.register('rankData', this.getData)
+  },
   mounted() {
     this.initChart();
-    this.getData();
+    // this.getData();
+    this.$socket.send({
+        action: 'getData',
+        socketType: 'rankData',
+        chartName: 'rank',
+        value: ''
+      })
     window.addEventListener("resize", this.adaptScreen);
     this.adaptScreen();
   },
   destroyed() {
     window.removeEventListener("resize", this.adaptScreen);
     clearInterval(this.intervalId)
+    this.$socket.unregister('rankData')
   },
   methods: {
-    async getData() {
+    async getData(data) {
       // ...
-      const { data } = await this.$http.get("rank");
+      // const { data } = await this.$http.get("rank");
       this.allData = data.sort((x, y) => y.value - x.value);
       this.updataChart();
       this.startInterval()
