@@ -3,14 +3,16 @@
     <header class="screen-header">
       <div>
         <img :src="headerSrc" alt="">
+        <!-- <img src="/static/img/header_border_dark.png" alt=""> -->
       </div>
       <span class="logo">
-        <img :src="logoSrc" alt="" />
+        <!-- <img src="/static/img/logo_dark.png" alt="" /> -->
+        CHARLES.GAN
       </span>
       <span class="title">电商平台实时监控系统</span>
       <div class="title-right">
         <img :src="themeSrc" class="qiehuan" @click="handleChangeTheme">
-        <span class="datetime">2049-01-01 00:00:00</span>
+        <span class="datetime">{{time}}</span>
       </div>
     </header>
     <div class="screen-body">
@@ -28,7 +30,7 @@
           <Seller ref="seller"></Seller>
           <div class="resize">
             <!-- icon-compress-alt -->
-            <span @click="changeSize('seller')"  :class="['iconfont', fullScreenStatus.seller ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
+            <span @click="changeSize('seller')" :class="['iconfont', fullScreenStatus.seller ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
           </div>
         </div>
       </section>
@@ -38,7 +40,7 @@
           <Map ref="map"></Map>
           <div class="resize">
             <!-- icon-compress-alt -->
-            <span @click="changeSize('map')"  :class="['iconfont', fullScreenStatus.map ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
+            <span @click="changeSize('map')" :class="['iconfont', fullScreenStatus.map ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
           </div>
         </div>
         <div id="middle-bottom" :class="[fullScreenStatus.rank ? 'fullscreen' : '']">
@@ -46,7 +48,7 @@
           <Rank ref="rank"></Rank>
           <div class="resize">
             <!-- icon-compress-alt -->
-            <span @click="changeSize('rank')"  :class="['iconfont', fullScreenStatus.rank ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
+            <span @click="changeSize('rank')" :class="['iconfont', fullScreenStatus.rank ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
           </div>
         </div>
       </section>
@@ -56,7 +58,7 @@
           <Hot ref="hot"></Hot>
           <div class="resize">
             <!-- icon-compress-alt -->
-            <span @click="changeSize('hot')"  :class="['iconfont', fullScreenStatus.hot ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
+            <span @click="changeSize('hot')" :class="['iconfont', fullScreenStatus.hot ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
           </div>
         </div>
         <div id="right-bottom" :class="[fullScreenStatus.stock ? 'fullscreen' : '']">
@@ -64,7 +66,7 @@
           <Stock ref="stock"></Stock>
           <div class="resize">
             <!-- icon-compress-alt -->
-            <span @click="changeSize('stock')"  :class="['iconfont', fullScreenStatus.stock ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
+            <span @click="changeSize('stock')" :class="['iconfont', fullScreenStatus.stock ? 'icon-compress-alt' : 'icon-expand-alt']"></span>
           </div>
         </div>
       </section>
@@ -73,47 +75,84 @@
 </template>
 
 <script>
-import Hot from '@/components/Hot.vue'
-import Map from '@/components/Map.vue'
-import Rank from '@/components/Rank.vue'
-import Seller from '@/components/Seller.vue'
-import Stock from '@/components/Stock.vue'
-import Trend from '@/components/Trend.vue'
+import Hot from "@/components/hotproduct.vue"
+import Map from "@/components/map.vue"
+import Rank from "@/components/rank.vue"
+import Seller from "@/components/seller.vue"
+import Stock from "@/components/stock.vue"
+import Trend from "@/components/trend.vue"
 import { mapState } from 'vuex'
-import { getThemeValue } from '@/utils/theme_utils'
+import {getThemeValue} from '@/utils/theme_utils.js'
+import moment from 'moment'
+
 export default {
-  created () {
-    // 注册接收到数据的回调函数
-    this.$socket.registerCallBack('fullScreen', this.recvData)
-    this.$socket.registerCallBack('themeChange', this.recvThemeChange)
+  components: {
+    Hot,
+    Map,
+    Rank,
+    Seller,
+    Stock,
+    Trend,
   },
-  destroyed () {
-    this.$socket.unRegisterCallBack('fullScreen')
-    this.$socket.unRegisterCallBack('themeChange')
-  },
-  data () {
+  data() {
     return {
-      // 定义每一个图表的全屏状态
       fullScreenStatus: {
-        trend: false,
-        seller: false,
+        hot: false,
         map: false,
         rank: false,
-        hot: false,
-        stock: false
+        seller: false,
+        stock: false,
+        trend: false,
+      },
+      time: '',
+      interValId: 0
+    }
+  },
+  mounted(){
+    moment.locale('zh-cn')
+    this.interValId = setInterval(() => {
+      this.time = moment().format("YYYY/MM/DD A h: mm: ss")
+    }, 1000)
+  },
+  created(){
+    this.$socket.register('fullScreen', this.recvData)
+    this.$socket.register('themeChange', this.revcChangeTheme)
+  },
+  destroyed(){
+    this.$socket.unregister('fullScreen')
+    this.$socket.unregister('themeChange')
+  },
+  computed: {
+    ...mapState(['theme']),
+    headerSrc() {
+      return '/static/img/' + getThemeValue(this.theme).headerBorderSrc
+    },
+    themeSrc() {
+      return '/static/img/' + getThemeValue(this.theme).themeSrc
+    },
+    containerStyle(){
+      return {
+        color: getThemeValue(this.theme).titleColor,
+        backgroundColor: getThemeValue(this.theme).backgroundColor
       }
     }
   },
   methods: {
-    changeSize (chartName) {
-      // 1.改变fullScreenStatus的数据
+    handleChangeTheme(){
+      // this.$store.commit('changeTheme')
+      this.$socket.send({
+        action: 'themeChange',
+        socketType: 'themeChange'
+      })
+    },
+    revcChangeTheme(){
+      this.$store.commit('changeTheme')
+    },
+    changeSize(chartName){
       // this.fullScreenStatus[chartName] = !this.fullScreenStatus[chartName]
-      // 2.需要调用每一个图表组件的screenAdapter的方法
-      // this.$refs[chartName].screenAdapter()
       // this.$nextTick(() => {
-      //   this.$refs[chartName].screenAdapter()
+      //   this.$refs[chartName].adaptScreen()
       // })
-      // 将数据发送给服务端
       const targetValue = !this.fullScreenStatus[chartName]
       this.$socket.send({
         action: 'fullScreen',
@@ -122,56 +161,13 @@ export default {
         value: targetValue
       })
     },
-    // 接收到全屏数据之后的处理
-    recvData (data) {
-      // 取出是哪一个图表需要进行切换
-      const chartName = data.chartName
-      // 取出, 切换成什么状态
-      const targetValue = data.value
-      this.fullScreenStatus[chartName] = targetValue
+    recvData(data){
+      const {chartName, value} = data
+      this.fullScreenStatus[chartName] = value
       this.$nextTick(() => {
-        this.$refs[chartName].screenAdapter()
+        this.$refs[chartName].adaptScreen()
       })
-    },
-    handleChangeTheme () {
-      // 修改VueX中数据
-      // this.$store.commit('changeTheme')
-      this.$socket.send({
-        action: 'themeChange',
-        socketType: 'themeChange',
-        chartName: '',
-        value: ''
-      })
-    },
-    recvThemeChange () {
-      this.$store.commit('changeTheme')
     }
-  },
-  components: {
-    Hot,
-    Map,
-    Rank,
-    Seller,
-    Stock,
-    Trend
-  },
-  computed: {
-    logoSrc () {
-      return '/static/img/' + getThemeValue(this.theme).logoSrc
-    },
-    headerSrc () {
-      return '/static/img/' + getThemeValue(this.theme).headerBorderSrc
-    },
-    themeSrc () {
-      return '/static/img/' + getThemeValue(this.theme).themeSrc
-    },
-    containerStyle () {
-      return {
-        backgroundColor: getThemeValue(this.theme).backgroundColor,
-        color: getThemeValue(this.theme).titleColor
-      }
-    },
-    ...mapState(['theme'])
   }
 }
 </script>

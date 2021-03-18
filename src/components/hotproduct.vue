@@ -7,12 +7,14 @@
     <span :style="comStyle" class="iconfont arrow-r" @click="toRight"
       >&#xe6ed;</span
     >
-    <h1 class="title" :style="{ fontSize: titleFontSize + 'px' }">
+    <h1 class="title" :style="comStyle">
       {{ activeTitle }}
     </h1>
   </div>
 </template>
 <script>
+import { mapState } from "vuex";
+import { getThemeValue } from "@/utils/theme_utils.js";
 export default {
   data() {
     return {
@@ -22,8 +24,8 @@ export default {
       titleFontSize: 0,
     };
   },
-  created(){
-    this.$socket.register('hotData', this.getData)
+  created() {
+    this.$socket.register("hotData", this.getData);
   },
   mounted() {
     this.initChart();
@@ -39,7 +41,7 @@ export default {
   },
   destroyed() {
     window.removeEventListener("resize", this.adaptScreen);
-    this.$socket.unregister('hotData')
+    this.$socket.unregister("hotData");
   },
   computed: {
     activeTitle() {
@@ -48,8 +50,18 @@ export default {
     },
     comStyle() {
       return {
-        fontSize: this.titleFontSize * 2 + "px",
+        fontSize: this.titleFontSize * 1.5 + "px",
+        color: getThemeValue(this.theme).titleColor,
       };
+    },
+    ...mapState(["theme"]),
+  },
+  watch: {
+    theme() {
+      this.chartInstance.dispose(); // 销毁实例
+      this.initChart(); // 重新初始化
+      this.updateChart();
+      this.adaptScreen();
     },
   },
   methods: {
@@ -58,10 +70,10 @@ export default {
       // const { data } = await this.$http.get("hotproduct");
       this.allData = data;
       console.log(this.allData);
-      this.updataChart();
+      this.updateChart();
     },
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs["hot"], "chalk");
+      this.chartInstance = this.$echarts.init(this.$refs["hot"], this.theme);
       const option = {
         title: {
           text: "▎热销商品占比",
@@ -105,7 +117,7 @@ export default {
       };
       this.chartInstance.setOption(option);
     },
-    updataChart() {
+    updateChart() {
       const seriesList = this.allData[this.currentIndex].children.map(
         (item) => {
           return {
@@ -138,11 +150,12 @@ export default {
           },
         },
         legend: {
-          itemWidth: this.titleFontSize / 2,
-          itemHeight: this.titleFontSize / 2,
-          itemGap: this.titleFontSize / 2,
+          top: "12%",
+          itemWidth: this.titleFontSize,
+          itemHeight: this.titleFontSize,
+          itemGap: this.titleFontSize,
           textStyle: {
-            fontSize: this.titleFontSize / 2,
+            fontSize: this.titleFontSize / 1.5,
           },
         },
         series: [
@@ -161,7 +174,7 @@ export default {
       } else {
         this.currentIndex--;
       }
-      this.updataChart();
+      this.updateChart();
     },
     toRight() {
       if (this.currentIndex === this.allData.length - 1) {
@@ -169,7 +182,7 @@ export default {
       } else {
         this.currentIndex++;
       }
-      this.updataChart();
+      this.updateChart();
     },
   },
 };

@@ -4,6 +4,7 @@
   </div>
 </template>
 <script>
+import {mapState} from 'vuex'
 export default {
   data() {
     return {
@@ -34,16 +35,27 @@ export default {
     clearInterval(this.intervalId)
     this.$socket.unregister('stockData')
   },
+  computed: {
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme(){
+      this.chartInstance.dispose()  // 销毁实例
+      this.initChart()  // 重新初始化
+      this.updateChart()
+      this.adaptScreen()
+    }
+  },
   methods: {
     getData(data) {
       // const { data } = await this.$http.get("stock");
       
       this.allData = data;
       console.log(this.allData);
-      this.updataChart();
+      this.updateChart();
     },
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs["stock"], "chalk");
+      this.chartInstance = this.$echarts.init(this.$refs["stock"], this.theme);
       const option = {
         title: {
           text: "▎库存和销量分析",
@@ -59,7 +71,7 @@ export default {
           this.startInterval()
       })
     },
-    updataChart() {
+    updateChart() {
       const centerPoints = [
         //圆心
         ["18%", "40%"],
@@ -127,7 +139,7 @@ export default {
     },
     adaptScreen() {
       const titleFontSize = this.$refs['stock'].offsetWidth / 100 * 3.6
-      const innerRadius = titleFontSize * 2
+      const innerRadius = titleFontSize * 3
       const outerRadius = innerRadius * 1.125
       const adaptOption = {
           title: {
@@ -140,35 +152,35 @@ export default {
                   type: 'pie',
                   radius: [outerRadius, innerRadius],
                   label: {
-                      fontSize: titleFontSize / 2
+                      fontSize: titleFontSize
                   }
               },
               {   
                   type: 'pie',
                   radius: [outerRadius, innerRadius],
                   label: {
-                      fontSize: titleFontSize / 2
+                      fontSize: titleFontSize
                   }
               },
               {   
                   type: 'pie',
                   radius: [outerRadius, innerRadius],
                   label: {
-                      fontSize: titleFontSize / 2
+                      fontSize: titleFontSize
                   }
               },
               {   
                   type: 'pie',
                   radius: [outerRadius, innerRadius],
                   label: {
-                      fontSize: titleFontSize / 2
+                      fontSize: titleFontSize
                   }
               },
               {   
                   type: 'pie',
                   radius: [outerRadius, innerRadius],
                   label: {
-                      fontSize: titleFontSize / 2
+                      fontSize: titleFontSize
                   }
               },
               
@@ -181,7 +193,7 @@ export default {
         if (this.intervalId) clearInterval(this.intervalId)
         this.intervalId = setInterval(() => {
             this.currentIndex = Math.abs(this.currentIndex - 1)
-            this.updataChart()
+            this.updateChart()
         }, 2000)
     }
   },

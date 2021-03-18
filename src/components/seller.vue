@@ -4,6 +4,8 @@
   </div>
 </template>
 <script>
+import {mapState} from 'vuex'
+
 export default {
   data() {
     return {
@@ -28,7 +30,7 @@ export default {
         chartName: 'seller',
         value: ''
       })
-    this.screenAdapter()
+    this.adaptScreen()
     this.startInterval();
     window.addEventListener('resize', this.handleResize) 
   },
@@ -44,10 +46,19 @@ export default {
     end() {
       return this.start + 5;
     },
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme(){
+      this.chartInstance.dispose()  // 销毁实例
+      this.initChart()  // 重新初始化
+      this.updateChart()
+      this.adaptScreen()
+    }
   },
   methods: {
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs["seller"], "chalk");
+      this.chartInstance = this.$echarts.init(this.$refs["seller"], this.theme);
       const option = {
         title: {
           text: "▎商家销售数据",
@@ -151,7 +162,7 @@ export default {
       };
       this.chartInstance.setOption(option)
     },
-    screenAdapter() {
+    adaptScreen() {
       const titleFontSize = this.$refs['seller'].offsetWidth / 100 * 3.6
       const AdapterOption = {
         title: {
@@ -190,10 +201,12 @@ export default {
 
     handleResize() {
       clearInterval(this.intervalId)
-      this.screenAdapter()
+      this.adaptScreen()
       this.startInterval()
     }
   },
+  
+  
 };
 </script>
 <style lang="less" scoped>

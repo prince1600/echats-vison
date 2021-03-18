@@ -23,14 +23,14 @@ export default {
     methods: {
         async getData(){
             // ... 
-            this.updataChart()
+            this.updateChart()
         },
         initChart(){
-            this.chartInstance = this.$echarts.init(this.$refs['hot'], 'chalk')
+            this.chartInstance = this.$echarts.init(this.$refs['hot'], this.theme)
             const option = {}
             this.chartInstance.setOption(option)
         },
-        updataChart(){
+        updateChart(){
             const updateOption = {}
             this.chartInstance.setOption(updateOption)
         },

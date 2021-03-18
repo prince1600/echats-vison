@@ -5,6 +5,15 @@ Vue.use(VueRouter)
 
 const routes = [
   {
+    path: '/',
+    redirect: '/screen',
+  },
+  {
+    path: '/screen',
+    name: 'screen',
+    component: () => import('@/views/ScreenPage.vue')
+  },
+  {
     path: '/seller',
     name: 'SellerPage',
     component: () => import('@/views/SellerPage.vue')

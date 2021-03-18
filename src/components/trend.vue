@@ -2,7 +2,7 @@
   <div class="com-container">
     <div class="title" >
       <select v-model="selectedType" :style="comStyle">
-        <option v-for="item in types" :key="item.key" :value="item.key">
+        <option v-for="item in types" :key="item.key" :value="item.key" style="color: #000">
           {{ item.text }} 
         </option>
       </select>
@@ -12,6 +12,8 @@
   </div>
 </template>
 <script>
+import { getThemeValue } from "@/utils/theme_utils.js";
+import { mapState } from 'vuex';
 const colors1 = [
   "rgba(11, 168, 44, 0.5)",
   "rgba(44, 110, 255, 0.5)",
@@ -61,18 +63,26 @@ export default {
     },
     comStyle(){
         return {
-            fontSize: this.titleFontSize + 'px'
+            fontSize: this.titleFontSize + 'px',
+            backgroundColor: getThemeValue(this.theme).titelColor
         }
-    }
+    },
+    ...mapState(['theme'])
   },
   watch: {
+    theme(){
+      this.chartInstance.dispose()  // 销毁实例
+      this.initChart()  // 重新初始化
+      this.updateChart()
+      this.adaptScreen()
+    },
     selectedType() {
       this.updateChart();
     },
   },
   methods: {
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs["trend"], "chalk");
+      this.chartInstance = this.$echarts.init(this.$refs["trend"], this.theme);
       const initOption = {
         xAxis: {
           type: "category",

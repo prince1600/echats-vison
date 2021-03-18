@@ -42,9 +42,9 @@ export default class SocketService {
             if (action === 'getData') {
                 this.callbackMapping[socketType].call(this, JSON.parse(data))
             } else if (action === 'fullScreen') {
-
+                this.callbackMapping[socketType].call(this, recvData)
             } else if (action === 'themeChange') {
-
+                this.callbackMapping[socketType].call(this, recvData)
             }
         }
     }
@@ -68,3 +68,4 @@ export default class SocketService {
         this.callbackMapping[socketType] = null
     }
 }
+

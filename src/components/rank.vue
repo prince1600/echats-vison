@@ -4,6 +4,7 @@
   </div>
 </template>
 <script>
+import {mapState} from 'vuex'
 export default {
   data() {
     return {
@@ -34,16 +35,27 @@ export default {
     clearInterval(this.intervalId)
     this.$socket.unregister('rankData')
   },
+  computed: {
+    ...mapState(['theme'])
+  },
+  watch: {
+    theme(){
+      this.chartInstance.dispose()  // 销毁实例
+      this.initChart()  // 重新初始化
+      this.updateChart()
+      this.adaptScreen()
+    }
+  },
   methods: {
     async getData(data) {
       // ...
       // const { data } = await this.$http.get("rank");
       this.allData = data.sort((x, y) => y.value - x.value);
-      this.updataChart();
+      this.updateChart();
       this.startInterval()
     },
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs["rank"], "chalk");
+      this.chartInstance = this.$echarts.init(this.$refs["rank"], this.theme);
       const option = {
         title: {
             text: '▎地区销售排行',
@@ -81,7 +93,7 @@ export default {
           this.startInterval()
       })
     },
-    updataChart() {
+    updateChart() {
       const colors = [
         ["#0BA82C", "#4FF778"],
         ["#2E73BF", "#23E5E5"],
@@ -161,7 +173,7 @@ export default {
                 this.startValue++
                 this.endValue++
             }
-            this.updataChart()
+            this.updateChart()
         },2000)
     }
   },
